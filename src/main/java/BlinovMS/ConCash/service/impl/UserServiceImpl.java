@@ -35,10 +35,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findByLoginAndPassword(String login, String password) {
-        User userEntity = findByLogin(login);
-        if (userEntity != null) {
-            if (passwordEncoder.matches(password, userEntity.getPassword())) {
-                return userEntity;
+        User user = findByLogin(login);
+        if (user != null) {
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                return user;
             }
         }
         return null;

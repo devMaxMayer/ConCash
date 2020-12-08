@@ -1,18 +1,20 @@
 package BlinovMS.ConCash.service.impl;
 
-import BlinovMS.ConCash.entity.ConversionResult;
 import BlinovMS.ConCash.entity.Currency;
+import BlinovMS.ConCash.entity.DateCourse;
+import BlinovMS.ConCash.entity.History;
+import BlinovMS.ConCash.entity.User;
 import BlinovMS.ConCash.repository.CurrencyRepository;
+import BlinovMS.ConCash.repository.DateCourseRepository;
+import BlinovMS.ConCash.repository.HistoryRepository;
 import BlinovMS.ConCash.service.CurrencyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
@@ -20,22 +22,24 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.security.PrivateKey;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 @Service
 public class CurrencyServiceImpl implements CurrencyService {
 
     @Autowired
     private CurrencyRepository currencyRepository;
+    @Autowired
+    private DateCourseRepository dateCourseRepository;
+    @Autowired
+    private HistoryRepository historyRepository;
 
-    @PostConstruct
     @Override
     public void parseAndSaveCourse() {
-        //List<Currency> currentCourse = new ArrayList<>();
+        DateCourse dateCourse = new DateCourse();
+        dateCourse.setDate(LocalDate.now());
+        dateCourseRepository.save(dateCourse);
+
         Currency currency = null;
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
@@ -50,7 +54,7 @@ public class CurrencyServiceImpl implements CurrencyService {
                     switch (startElement.getName().getLocalPart()) {
                         case "Valute":
                             currency = new Currency();
-                            currency.setDate(LocalDate.now());
+                            currency.setDate(dateCourse);
                             break;
                         case "NumCode":
                             xmlEvent = reader.nextEvent();
@@ -88,7 +92,6 @@ public class CurrencyServiceImpl implements CurrencyService {
                 if (xmlEvent.isEndElement()) {
                     EndElement endElement = xmlEvent.asEndElement();
                     if (endElement.getName().getLocalPart().equals("Valute")) {
-                       // currentCourse.add(currency);
                         currencyRepository.save(currency);
                     }
                 }
@@ -99,14 +102,39 @@ public class CurrencyServiceImpl implements CurrencyService {
         }
     }
 
-
+    @PostConstruct
     @Override
-    public void checkCourse(Date date) {
-
+    public void checkCourse() {
+        try {
+            LocalDate localDate = LocalDate.now();
+            DateCourse dateCourse = dateCourseRepository.findByDate(localDate);
+            System.out.println(dateCourse.getDate());
+        } catch (Exception e) {
+            parseAndSaveCourse();
+        }
     }
 
     @Override
-    public ConversionResult convert(Currency fromCurrency, Currency toCurrency) {
-        return null;
+    public void convert(
+            Currency fromCurrency, Currency toCurrency, Integer inputNum, User user, DateCourse dateCourse) {
+
+        BigDecimal val = fromCurrency.getValue();
+        BigDecimal nom = BigDecimal.valueOf(fromCurrency.getNominal());
+        BigDecimal input = BigDecimal.valueOf(inputNum);
+
+        History history = new History();
+        history.setFromCurrency(fromCurrency.getName());
+        history.setToCurrency(toCurrency.getName());
+        history.setOriginalSum(input);
+        history.setDate(dateCourse);
+        history.setUser(user);
+        BigDecimal result = val.divide(nom).multiply(input);
+        if (toCurrency.getCharCode() == "RUB") {
+            history.setResultSum(result);
+        } else {
+            history.setResultSum(result.divide(
+                    toCurrency.getValue()).multiply(BigDecimal.valueOf(toCurrency.getNominal())));
+        }
+        historyRepository.save(history);
     }
 }

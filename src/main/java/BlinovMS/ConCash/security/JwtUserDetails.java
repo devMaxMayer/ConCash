@@ -14,11 +14,11 @@ public class JwtUserDetails implements UserDetails {
     private String password;
     private Collection<? extends GrantedAuthority> grantedAuthorities;
 
-    public static JwtUserDetails fromUserEntityToCustomUserDetails(User userEntity) {
+    public static JwtUserDetails fromUserEntityToCustomUserDetails(User user) {
         JwtUserDetails c = new JwtUserDetails();
-        c.login = userEntity.getLogin();
-        c.password = userEntity.getPassword();
-        c.grantedAuthorities = Collections.singletonList(new SimpleGrantedAuthority(userEntity.getRole().getName()));
+        c.login = user.getLogin();
+        c.password = user.getPassword();
+        c.grantedAuthorities = Collections.singletonList(new SimpleGrantedAuthority(user.getRole().getName()));
         return c;
     }
 
