@@ -2,7 +2,10 @@ package BlinovMS.ConCash.service;
 
 import BlinovMS.ConCash.entity.Currency;
 import BlinovMS.ConCash.entity.DateCourse;
+import BlinovMS.ConCash.entity.History;
 import BlinovMS.ConCash.entity.User;
+
+import java.util.List;
 
 public interface CurrencyService {
 
@@ -10,7 +13,11 @@ public interface CurrencyService {
 
     void checkCourse();
 
-    void convert(Currency fromCurrency, Currency toCurrency, Integer inputNum, User user, DateCourse dateCourse);
+    History convert(History history, User user);
+
+    Currency findByName(String name);
+
+    List<Currency> getList ();
 
 
 

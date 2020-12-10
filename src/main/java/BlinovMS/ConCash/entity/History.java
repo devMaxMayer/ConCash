@@ -23,14 +23,16 @@ public class History {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "from_currency")
-    private String fromCurrency;
+    @ManyToOne
+    @JoinColumn(name = "from_currency_id")
+    private Currency fromCurrency;
 
-    @Column(name = "to_currency")
-    private String toCurrency;
+    @ManyToOne
+    @JoinColumn(name = "to_currency_id")
+    private Currency toCurrency;
 
     @Column(name = "original_sum")
-    private BigDecimal originalSum;
+    private Integer originalSum;
 
     @Column(name = "result_sum")
     private BigDecimal resultSum;

@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class CurrencyServiceImpl implements CurrencyService {
@@ -33,6 +35,19 @@ public class CurrencyServiceImpl implements CurrencyService {
     private DateCourseRepository dateCourseRepository;
     @Autowired
     private HistoryRepository historyRepository;
+
+    @Override
+    public List<Currency> getList() {
+        List<Currency> list = currencyRepository.getCur(LocalDate.now());
+        list.add(currencyRepository.findByName("Российский рубль"));
+        return list;
+    }
+
+    @Override
+    public Currency findByName(String name) {
+        Currency result = currencyRepository.findByName(name);
+        return result;
+    }
 
     @Override
     public void parseAndSaveCourse() {
@@ -105,36 +120,31 @@ public class CurrencyServiceImpl implements CurrencyService {
     @PostConstruct
     @Override
     public void checkCourse() {
-        try {
-            LocalDate localDate = LocalDate.now();
-            DateCourse dateCourse = dateCourseRepository.findByDate(localDate);
-            System.out.println(dateCourse.getDate());
-        } catch (Exception e) {
+
+        LocalDate localDate = LocalDate.now();
+        DateCourse chech = dateCourseRepository.findByDate(localDate);
+        if(chech == null){
             parseAndSaveCourse();
         }
+
     }
 
     @Override
-    public void convert(
-            Currency fromCurrency, Currency toCurrency, Integer inputNum, User user, DateCourse dateCourse) {
-
-        BigDecimal val = fromCurrency.getValue();
-        BigDecimal nom = BigDecimal.valueOf(fromCurrency.getNominal());
-        BigDecimal input = BigDecimal.valueOf(inputNum);
-
-        History history = new History();
-        history.setFromCurrency(fromCurrency.getName());
-        history.setToCurrency(toCurrency.getName());
-        history.setOriginalSum(input);
-        history.setDate(dateCourse);
+    public History convert(History history, User user) {
         history.setUser(user);
+        BigDecimal val = history.getFromCurrency().getValue();
+        BigDecimal nom = BigDecimal.valueOf(history.getFromCurrency().getNominal());
+        BigDecimal input = BigDecimal.valueOf(history.getOriginalSum());
         BigDecimal result = val.divide(nom).multiply(input);
-        if (toCurrency.getCharCode() == "RUB") {
+
+        if (history.getToCurrency().getCharCode() == "RUB") {
             history.setResultSum(result);
         } else {
             history.setResultSum(result.divide(
-                    toCurrency.getValue()).multiply(BigDecimal.valueOf(toCurrency.getNominal())));
+                    history.getToCurrency().getValue()).multiply(BigDecimal.valueOf(
+                            history.getToCurrency().getNominal())));
         }
         historyRepository.save(history);
+        return history;
     }
 }

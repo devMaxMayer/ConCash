@@ -14,9 +14,7 @@ import javax.validation.Valid;
 @RestController
 public class AuthController {
 
-//    @Autowired
-//    private UserService userService;
-//    private JwtProvider jwtProvider;
+
 
     private final UserService userService;
     private final JwtProvider jwtProvider;
