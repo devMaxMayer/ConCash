@@ -5,6 +5,7 @@ import BlinovMS.ConCash.entity.DateCourse;
 import BlinovMS.ConCash.entity.History;
 import BlinovMS.ConCash.entity.User;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface CurrencyService {
@@ -13,7 +14,7 @@ public interface CurrencyService {
 
     void checkCourse();
 
-    History convert(History history, User user);
+    History convert(History history, HttpServletRequest user);
 
     Currency findByName(String name);
 

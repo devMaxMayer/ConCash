@@ -6,5 +6,5 @@ import BlinovMS.ConCash.entity.User;
 import java.util.List;
 
 public interface HistoruService {
-    List<History> getAll (User user);
+    List<History> getAll (String userName);
 }

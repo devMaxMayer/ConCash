@@ -1,18 +1,18 @@
 package BlinovMS.ConCash.RESTController;
 
 
-import BlinovMS.ConCash.dto.BaseDto;
 import BlinovMS.ConCash.entity.Currency;
 import BlinovMS.ConCash.entity.History;
-import BlinovMS.ConCash.entity.User;
 import BlinovMS.ConCash.service.CurrencyService;
 import BlinovMS.ConCash.service.HistoruService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -32,9 +32,9 @@ public class ConvertController {
      return currencyService.getList();
     }
 
-    @PostMapping("/convert")
+    @PostMapping("/user/convert")
     public BigDecimal convert(
-            @AuthenticationPrincipal User user,
+            HttpServletRequest user,
             @RequestBody  History history
             ) {
         History result = currencyService.convert(history, user);
@@ -42,9 +42,10 @@ public class ConvertController {
         return result.getResultSum();
     }
 
-    @GetMapping("/history")
-    public Integer history(@RequestBody BaseDto userId){
-        //return historuService.getAll(user);
-        return userId.getId();
+    @GetMapping("/user/history")
+    public List<History> history(HttpServletRequest req){
+        String username = req.getUserPrincipal().getName();
+
+        return historuService.getAll(username);
     }
 }

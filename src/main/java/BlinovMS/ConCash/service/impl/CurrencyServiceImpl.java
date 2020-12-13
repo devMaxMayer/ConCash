@@ -7,11 +7,14 @@ import BlinovMS.ConCash.entity.User;
 import BlinovMS.ConCash.repository.CurrencyRepository;
 import BlinovMS.ConCash.repository.DateCourseRepository;
 import BlinovMS.ConCash.repository.HistoryRepository;
+import BlinovMS.ConCash.repository.UserRepository;
 import BlinovMS.ConCash.service.CurrencyService;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -25,6 +28,7 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 @Service
 public class CurrencyServiceImpl implements CurrencyService {
@@ -35,6 +39,8 @@ public class CurrencyServiceImpl implements CurrencyService {
     private DateCourseRepository dateCourseRepository;
     @Autowired
     private HistoryRepository historyRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public List<Currency> getList() {
@@ -121,6 +127,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public void checkCourse() {
 
+
         LocalDate localDate = LocalDate.now();
         DateCourse chech = dateCourseRepository.findByDate(localDate);
         if(chech == null){
@@ -130,8 +137,10 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public History convert(History history, User user) {
-        history.setUser(user);
+    public History convert(History history, HttpServletRequest user) {
+
+        User userValid = userRepository.findByLogin(user.getUserPrincipal().getName());
+        history.setUser(userValid);
         BigDecimal val = history.getFromCurrency().getValue();
         BigDecimal nom = BigDecimal.valueOf(history.getFromCurrency().getNominal());
         BigDecimal input = BigDecimal.valueOf(history.getOriginalSum());
